@@ -10,16 +10,7 @@ const generalError = async (err, req, res, next) => {
   });
 };
 
-function createResponseObject(status, message, data) {
-  return {
-    status: status,
-    message: message,
-    data: data
-  };
-}
-
 module.exports = {
   helperRoutes,
   generalError,
-  createResponseObject
 };

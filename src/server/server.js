@@ -1,12 +1,12 @@
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const { PORT } = require("./config/environments");
-const cases = require("./routes/case.route");
+const { PORT } = require("../config/environments");
+const cases = require("../routes/case.route");
 const compression = require("compression");
 const helmet = require("helmet");
 const app = express();
-const { helperRoutes, generalError } = require("./helpers/routes.helper");
+const { helperRoutes, generalError } = require("../helpers/routes.helper");
 
 app.use(compression());
 app.use(helmet());
