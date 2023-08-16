@@ -9,10 +9,14 @@ const Async_mysql = {
 async function runQuery(query, params) {
     try {
         const results = await Async_mysql.query(query, [params]);
-        if (results.length > 0) {
-            return results[0]
+        if (results[0]) {
+            if (results[0].length > 0) {
+                return results[0]
+            } else {
+                return []
+            }
         } else {
-            return []
+            return results
         }
     } catch (error) {
         return error.message;
