@@ -10,7 +10,7 @@ async function subscriber() {
             // durable: false,
         });
         console.log("Esperando mensajes...");
-
+        channel.prefetch(1);
         channel.consume(queue, async (message) => {
             const data = JSON.parse(message.content.toString());
             try {
@@ -19,12 +19,9 @@ async function subscriber() {
             } catch (error) {
                 console.error("Error en searchMovsCase:", error);
             } finally {
-                const delayBetweenMessages = 2000; // 2 segundos
-                await delay(delayBetweenMessages);
+                channel.ack(message);
             }
-        },
-            { noAck: true, },
-        );
+        });
     } catch (error) {
 
     }

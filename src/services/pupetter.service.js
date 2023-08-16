@@ -3,19 +3,14 @@ const { runQuery } = require("../services/mysql.service")
 const { Scraping } = require("../models/scraping.model")
 
 async function searchMovsCase(data) {
-    return new Promise(async (resolve, reject) => {
-        setTimeout(() => {
-            resolve("Ok")
-        }, 3000);
+    const browser = await puppeteer.launch({
+        headless: 'new',
+        args: ["--no-sandbox", "--headless"],
+        //   executablePath: '/usr/bin/google-chrome',
     });
-    // const browser = await puppeteer.launch({
-    //     headless: 'new',
-    //     args: ["--no-sandbox", "--headless"],
-    //     //   executablePath: '/usr/bin/google-chrome',
-    // });
 
-    // const responseMovs = await getMovs(browser, data);
-    // return responseMovs;
+    const responseMovs = await getMovs(browser, data);
+    return responseMovs;
 }
 async function getMovs(browser, data) {
     const { NameDB, fullUrl, CodigoExterno, cFecha, nCas_Id } = data
