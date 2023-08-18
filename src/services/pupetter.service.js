@@ -1,10 +1,14 @@
 const puppeteer = require("puppeteer");
 const { runQuery } = require("../services/mysql.service")
-const { Scraping } = require("../models/scraping.model")
+const { general } = require("../models/general.model")
+const path = require('path');
+const fs = require('fs');
+const { uploadFile } = require("./s3.service");
+const e = require("express");
 
 async function searchMovsCase(data) {
     const browser = await puppeteer.launch({
-        headless: 'new',
+        headless: "new",
         args: ["--no-sandbox", "--headless"],
         //   executablePath: '/usr/bin/google-chrome',
     });
@@ -31,7 +35,7 @@ async function getMovs(browser, data) {
         let cod_instancia = xcej[6];
         await page.goto("https://cej.pj.gob.pe/cej/forms/busquedaform.html");
         const title = await page.title();
-        console.log(`The title of the page is: ${title}`);
+        // console.log(`The title of the page is: ${title}`);
         await page.content();
         await page.waitForSelector("#busquedaPorCodigo");
         await page.click("#myTab > li:nth-child(2)");
@@ -87,7 +91,7 @@ async function getMovs(browser, data) {
             });
 
         } catch (error) {
-            console.log("Low error:", error.message);
+            // console.log("Low error:", error.message);
         }
         if (errorNotExist !== undefined && errorNotExist.display !== 'none') {
             throw new Error(errorNotExist.innerHTML);
@@ -195,8 +199,27 @@ async function getMovs(browser, data) {
                     let xSumilla = await page.$eval("#pnlSeguimiento" + (i + 1) + " > div:nth-child(2) > div > div > div:nth-child(3) > div:nth-child(1) > div:nth-child(2)", (e) => e.innerText.trim(),);
                     let xDescripcionUsuario = await page.$eval("#pnlSeguimiento" + (i + 1) + " > div:nth-child(2) > div > div > div:nth-child(3) > div:nth-child(2) > div:nth-child(2)", (e) => e.innerText.trim(),);
 
-                    // function detect case frostbitten
-                    // ejecute one
+                    await page.waitForTimeout(300)
+                    try {
+                        let directory = path.join(__dirname, '/downloadFileTemp' + '/' + fullUrl + '/' + CodigoExterno + '/' + CodigoMoviento);
+                        const client = await page.target().createCDPSession()
+                        await client.send('Page.setDownloadBehavior', {
+                            behavior: 'allow',
+                            downloadPath: directory,
+                        })
+
+                        let xhref = await page.$eval('#pnlSeguimiento' + (i + 1) + '> div:nth-child(2) > div > div > div:nth-child(4)> div > a', e => e.href.trim());
+                        if (xhref) {
+                            const page = await browser.newPage();
+                            await page.goto(xhref);
+                            // const result = await uploadFile('s3-gps-files', fullUrl + '/' + CodigoExterno, './src/services/mysql.service.js')
+                            // console.log(result);
+                        }
+                    } catch (error) {
+
+                    }
+
+
                     if (i == 0) {
                         await createArrayAllCases(xFechaResolucion, NameDB, nCas_Id)
                     }
@@ -308,10 +331,36 @@ async function getMovs(browser, data) {
         }
 
     } catch (error) {
-        return new Scraping(500, error.message);
+        return new general(500, error.message);
     } finally {
         await browser.close();
-        return new Scraping(200, 'scraping finished correctly');
+        // let directory = path.join(__dirname, '/downloadFileTemp' + '/' + fullUrl + '/' + CodigoExterno);
+        // fs.readdir(directory, (err, files) => {
+        //     if (err) {
+        //         return;
+        //     }
+        //     files.forEach(file => {
+        //         fs.readdir(path.join(directory, '/' + file), (err, files) => {
+        //             if (err) {
+        //                 return;
+        //             }
+        //             fs.readdir(path.join(directory, '/' + file), async (err, namefile) => {
+        //                 if (err) {
+        //                     return;
+        //                 }
+        //                 if (namefile.length > 0) {
+        //                     let routeS3 = fullUrl + "/" + CodigoExterno + "/" + file
+        //                     let fileRoute = directory + '/' + file + '/' + namefile[0]
+        //                     const result = await uploadFile('s3-gps-files', routeS3, fileRoute)
+
+        //                 }
+        //             })
+        //         });
+        //     })
+        // });
+
+
+        return new general(200, 'scraping finished correctly');
     }
 }
 async function createArrayAllCases(xFechaResolucion, NameDB, nCas_Id) {

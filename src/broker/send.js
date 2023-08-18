@@ -22,13 +22,13 @@ async function createArrayAllCases() {
         arraySubscription = arraySubscription.filter(e => e.cSsi_Estado == 'ED01');
         for (let i = 0; i < arraySubscription.length; i++) {
             let cSsi_BD = arraySubscription[i].cSsi_BD;
-            let cSsi_Cuenta = 'http://' + arraySubscription[i].cSsi_Cuenta + ".gpslegal.pe";
+            let cSsi_Cuenta = arraySubscription[i].cSsi_Cuenta;
             let arrayCases = await runQuery("Call " + cSsi_BD + ".ca_sp_Listar_Casos(?)", [null]);
             if (typeof arrayCases == 'object') {
                 for (let e = 0; e < arrayCases.length; e++) {
                     let boddyData = {
                         NameDB: cSsi_BD,
-                        fullUrl: cSsi_Cuenta,
+                        fullUrl: cSsi_Cuenta == 'http://localhost:81' ? 'localhost' : cSsi_Cuenta,
                         CodigoExterno: arrayCases[e].cCas_Cod_Externo,
                         cFecha: date.getDate() + " de " + nameMonths[date.getMonth()] + " de " + date.getFullYear(),
                         nCas_Id: arrayCases[e].nCas_Id
@@ -39,6 +39,7 @@ async function createArrayAllCases() {
         }
         chunkSize = Math.ceil(arrayGeneralCase.length / 4);
     } catch (error) {
+        console.log(error)
         return error.message;
     }
 }
